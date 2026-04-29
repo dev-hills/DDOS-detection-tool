@@ -14,7 +14,7 @@ class SlackNotifier:
         Send a message to Slack webhook.
         """
         if not self.webhook_url:
-            print("[SLACK] No webhook configured")
+            print("[SLACK] Webhook missing")
             return
 
         payload = {
@@ -29,7 +29,7 @@ class SlackNotifier:
             )
 
             if response.status_code != 200:
-                print(f"[SLACK ERROR] {response.text}")
+                print(f"[SLACK ERROR] {response.status_code} {response.text}")
 
         except Exception as e:
             print(f"[SLACK EXCEPTION] {e}")
