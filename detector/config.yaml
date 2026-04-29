@@ -1,6 +1,6 @@
 log_file: /logs/hng-access.log
 
-slack_webhook: "https://hooks.slack.com/services/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"
+slack_webhook: "YOUR_WEBHOOK_URL"
 
 zscore_threshold: 3.0
 multiplier_threshold: 5
