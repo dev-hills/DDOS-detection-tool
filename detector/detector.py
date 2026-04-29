@@ -81,7 +81,7 @@ class AnomalyDetector:
         error_mean = baseline_data["error_mean"]
 
         for ip, current_rate in ip_rates.items():
-          
+            print(f"[DETECTOR] evaluating {ip} rate={current_rate}")
 
             ip_error_rate = self.monitor.get_ip_error_rate(ip)
 

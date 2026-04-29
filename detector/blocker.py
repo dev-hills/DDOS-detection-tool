@@ -59,15 +59,9 @@ class IPBlocker:
             duration = self.get_ban_duration(previous_ban_count)
 
             if ip not in self.blocked_ips:
-                success = self._run_iptables([
-                    "iptables",
-                    "-A",
-                    "INPUT",
-                    "-s",
-                    ip,
-                    "-j",
-                    "DROP"
-                ])
+                success = self._run_iptables(
+                    ["iptables", "-A", "INPUT", "-s", ip, "-j", "DROP"]
+                )
 
                 if not success:
                     return None
@@ -79,17 +73,17 @@ class IPBlocker:
                 "duration": duration,
                 "condition": condition,
                 "rate": rate,
-                "baseline": baseline
+                "baseline": baseline,
             }
 
             if self.audit_logger:
-                self.audit_logger(
+                self.audit_logger.log(
                     action="BAN",
                     ip=ip,
                     condition=condition,
                     rate=rate,
                     baseline=baseline,
-                    duration="PERMANENT" if duration is None else duration
+                    duration="PERMANENT" if duration is None else duration,
                 )
 
             return duration
@@ -102,15 +96,9 @@ class IPBlocker:
             if ip not in self.blocked_ips:
                 return False
 
-            success = self._run_iptables([
-                "iptables",
-                "-D",
-                "INPUT",
-                "-s",
-                ip,
-                "-j",
-                "DROP"
-            ])
+            success = self._run_iptables(
+                ["iptables", "-D", "INPUT", "-s", ip, "-j", "DROP"]
+            )
 
             if not success:
                 return False
@@ -119,13 +107,13 @@ class IPBlocker:
             del self.blocked_ips[ip]
 
             if self.audit_logger:
-                self.audit_logger(
+                self.audit_logger.log(
                     action="UNBAN",
                     ip=ip,
                     condition=metadata["condition"],
                     rate=metadata["rate"],
                     baseline=metadata["baseline"],
-                    duration="-"
+                    duration="-",
                 )
 
             return True
@@ -162,12 +150,14 @@ class IPBlocker:
                 if data["expires_at"] is not None:
                     remaining = max(0, int(data["expires_at"] - time.time()))
 
-                output.append({
-                    "ip": ip,
-                    "blocked_at": data["blocked_at"],
-                    "expires_in": remaining,
-                    "ban_count": data["ban_count"],
-                    "duration": data["duration"]
-                })
+                output.append(
+                    {
+                        "ip": ip,
+                        "blocked_at": data["blocked_at"],
+                        "expires_in": remaining,
+                        "ban_count": data["ban_count"],
+                        "duration": data["duration"],
+                    }
+                )
 
             return output

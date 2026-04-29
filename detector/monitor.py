@@ -66,6 +66,9 @@ class TrafficMonitor:
             return
 
         status = int(entry.get("status", 200))
+        method = entry.get("method", "-")
+        path = entry.get("path", "-")
+
 
         with self.lock:
             self.global_window.append(timestamp)
@@ -83,7 +86,7 @@ class TrafficMonitor:
                 "status": status,
                 "response_size": entry.get("response_size"),
             }
-
+            print(f"[MONITOR] {source_ip} {method} {path}")
             self._cleanup_old_entries(timestamp)
 
     def tail_log(self):

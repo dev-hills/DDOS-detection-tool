@@ -83,6 +83,8 @@ class TrafficBaseline:
                 mean = 1.0
                 stddev = 1.0
 
+            print(f"[BASELINE] mean={mean:.2f} std={stddev:.2f}")    
+
             # prevent impossible zero values
             self.effective_mean = max(mean, 1.0)
             self.effective_stddev = max(stddev, 1.0)
@@ -95,7 +97,7 @@ class TrafficBaseline:
             self.last_recalculation = time.time()
 
             if self.audit_logger:
-                self.audit_logger(
+                self.audit_logger.log(
                     action="BASELINE",
                     ip="-",
                     condition="recalculated",

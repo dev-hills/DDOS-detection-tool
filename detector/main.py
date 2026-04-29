@@ -9,6 +9,7 @@ from blocker import IPBlocker
 from notifier import SlackNotifier
 from unbanner import AutoUnbanner
 from dashboard import MetricsDashboard
+from audit_logger import AuditLogger
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -19,23 +20,18 @@ def load_config():
         return yaml.safe_load(f)
 
 
-def write_audit_log(action, ip, condition, rate, baseline, duration):
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-
-    log_line = (
-        f"[{timestamp}] {action} {ip} | "
-        f"{condition} | {rate} | {baseline} | {duration}"
-    )
-
-    print(log_line)
-
-    log_path = os.path.join(BASE_DIR, "audit.log")
-    with open(log_path, "a") as f:
-        f.write(log_line + "\n")
-
-
 def main():
     config = load_config()
+    audit_logger = AuditLogger(os.path.join(BASE_DIR, "audit.log"))
+
+    audit_logger.log(
+        action="STARTUP",
+        ip="-",
+        condition="detector started",
+        rate="-",
+        baseline="-",
+        duration="-",
+    )
 
     # =========================
     # CORE COMPONENTS
@@ -44,17 +40,11 @@ def main():
     monitor = TrafficMonitor(config["log_file"])
     monitor.start()
 
-    blocker = IPBlocker(
-        config=config,
-        audit_logger=write_audit_log
-    )
+    blocker = IPBlocker(config=config, audit_logger=audit_logger)
 
     notifier = SlackNotifier(config["slack_webhook"])
 
-    baseline = TrafficBaseline(
-        monitor=monitor,
-        audit_logger=write_audit_log
-    )
+    baseline = TrafficBaseline(monitor=monitor, audit_logger=audit_logger)
     baseline.start()
 
     detector = AnomalyDetector(
@@ -62,22 +52,16 @@ def main():
         baseline=baseline,
         blocker=blocker,
         notifier=notifier,
-        config=config
+        config=config,
     )
     detector.start()
 
     unbanner = AutoUnbanner(
-        blocker=blocker,
-        notifier=notifier,
-        interval=10
+        blocker=blocker, notifier=notifier, audit_logger=audit_logger, interval=10
     )
     unbanner.start()
 
-    dashboard = MetricsDashboard(
-        monitor=monitor,
-        baseline=baseline,
-        blocker=blocker
-    )
+    dashboard = MetricsDashboard(monitor=monitor, baseline=baseline, blocker=blocker)
     dashboard.start()
 
     # =========================
