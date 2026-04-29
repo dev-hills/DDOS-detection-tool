@@ -50,7 +50,6 @@ def main():
     )
 
     notifier = SlackNotifier(config["slack_webhook"])
-    notifier._send("✅ HNG detector started successfully on AWS")
 
     baseline = TrafficBaseline(
         monitor=monitor,
